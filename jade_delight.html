@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="jade.css">
+<title>Jade Delight</title>
+<script
+	src="https://code.jquery.com/jquery-3.6.1.js"
+	integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI="
+	crossorigin="anonymous">
+</script>
+</head>
+
+<body>
+<script>
+
+function MenuItem(name, cost)
+{
+	this.name = name;
+	this.cost=cost;
+}
+
+menuItems = new Array(
+	new MenuItem("Chicken Chop Suey", 5.5),
+	new MenuItem("Sweet and Sour Pork", 7.25),
+	new MenuItem("Shrimp Lo Mein", 6.80),
+	new MenuItem("Moo Shi Chicken", 9.50),
+	new MenuItem("Fried Rice", 3.25)
+);
+
+function makeSelect(name, minRange, maxRange)
+{
+	var t= "";
+	t = "<select name='" + name + "' size='1'>";
+	for (j=minRange; j<=maxRange; j++)
+	   t += "<option>" + j + "</option>";
+	t+= "</select>"; 
+	return t;
+}
+
+function td(content, className="")
+{
+	return "<td class = '" + className + "'>" + content + "</td>";
+}
+	
+</script>
+
+<h1>Jade Delight</h1>
+<form>
+<form id = "user">
+<p class="userInfo"><label>First Name:</label> <input type="text"  name='fname' /></p>
+<p class="userInfo"><label>Last Name*:</label>  <input type="text"  name='lname' /></p>
+<p class="userInfo address"><label>Street*:</label> <input type="text" name='street' /></p>
+<p class="userInfo address"><label>City*:</label> <input type="text" name='city' /></p>
+<p class="userInfo"><label>Phone*:</label> <input type="text"  name='phone' /></p>
+<p> 
+	<!-- CAN I DO THIS ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????-->
+	
+	<input type="radio"  name="p_or_d" value = "pickup" checked="checked" />Pickup  
+	<input type="radio"  name='p_or_d' value = 'delivery' />
+	Delivery
+</form>	
+</p>
+<table border="0" cellpadding="3">
+  <tr>
+    <th>Select Item</th>
+    <th>Item Name</th>
+    <th>Cost Each</th>
+    <th>Total Cost</th>
+  </tr>
+<script>
+
+  var s = "";
+  for (i=0; i< menuItems.length; i++)
+  {
+	  s += "<tr>";
+	  s += td(makeSelect("quan" + i, 0, 10),"selectQuantity");
+	  s += td(menuItems[i].name, "itemName");
+	  s += td("$" +menuItems[i].cost.toFixed(2), "cost");
+	  s += td("$<input type='text' name='cost'/>", "totalCost");
+	  s+= "</tr>";
+  }
+  document.writeln(s);
+
+
+</script>
+</table>
+<p class="subtotal totalSection"><label>Subtotal</label>: 
+   $ <input type="text"  name='subtotal' id="subtotal" />
+</p>
+<p class="tax totalSection"><label>Mass tax 6.25%:</label>
+  $ <input type="text"  name='tax' id="tax" />
+</p>
+<p class="total totalSection"><label>Total:</label> $ <input type="text"  name='total' id="total" />
+</p>
+
+<input type = "button" value = "Submit Order" />
+
+
+</form>
+
+<script>
+	//this runs the fucntion first so that street/city is hidden since
+	//the form automatically selects 'pickup' first
+	fields = document.getElementsByName("p_or_d");
+
+	// fields.onclick = showField();
+	
+	if (fields[0].checked) {
+		console.log("omne")
+		$(".address").hide();
+	}
+
+	
+	// $(document).ready(function() {
+	// 	$(quani)
+	// 	calculate();
+	// });
+
+	// function calculate() {
+
+	// }
+	$(document).ready(function() {
+		$(fields).on('click', function() {
+			if (fields[0].checked) {
+				$(".address").hide();
+			} else {
+				$(".address").show();
+				$(".address").prop('required', true);
+			}
+		});
+	});
+
+	// On clicking submit:
+	button = document.querySelectorAll('input[type="button"]');
+	$(document).ready(function (){
+		$(button).on('click', function() {
+			printDate();
+			validate();
+		});
+	});
+	// Find current time (hours, minutes) and add amount depending on pickup/delivery	
+	function printDate () {
+		date = new Date();
+		if (fields[0].checked) {
+			newDate = new Date(date.getTime() + 20*60000);
+		} else {
+			newDate = new Date(date.getTime() + 40*60000);
+		}
+		console.log(newDate);	
+	};
+	
+	function validate () {
+		const bool = verifyNum();
+		if (bool == true) {
+			window.open(
+            "ilanh123.github.io/hw6/results", "_blank");
+		}
+	};
+
+	function verifyNum () {
+		phoneNum = document.forms[0]["phone"].value;
+		if (phoneNum.length == 10 || phoneNum.length == 7) {
+			return true;
+		} else {
+			alert("Your phone number was incorrectly entered");
+			return false;
+		}
+	};
+	//allows for the functionality of showing and hiding street/city depending
+	//on the user's choice of 'delivery' or 'pickup'
+
+	// function showField() {
+	// 	console.log("at show field")
+	// 	if (fields[0].checked) {
+	// 		$(".address").hide();
+	// 	} else {
+	// 		$(".address").show();
+	// 		$(".address").prop('required', true);
+	// 	}
+	// }
+
+</script>
+</body>
+</html>
