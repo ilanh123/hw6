@@ -53,7 +53,7 @@ function td(content, className="")
 <p class="userInfo address"><label>City*:</label> <input type="text" name='city' /></p>
 <p class="userInfo"><label>Phone*:</label> <input type="text"  name='phone' /></p>
 <p> 
-	<!-- CAN I DO THIS ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????-->
+
 	
 	<input type="radio"  name="p_or_d" value = "pickup" checked="checked" />Pickup  
 	<input type="radio"  name='p_or_d' value = 'delivery' />
@@ -98,86 +98,195 @@ function td(content, className="")
 
 </form>
 
-<script>
-	//this runs the fucntion first so that street/city is hidden since
-	//the form automatically selects 'pickup' first
+<script> // ILAN ADDED CODE
+
+	// defining variables and arrays
 	fields = document.getElementsByName("p_or_d");
+	phoneNum = document.forms[0]["phone"].value;
+	select_quantity = document.getElementsByClassName("selectQuantity");
 
-	// fields.onclick = showField();
-	
-	if (fields[0].checked) {
-		console.log("omne")
-		$(".address").hide();
-	}
+	all_costs = document.getElementsByName("cost");
+    total_cost = 0;
+	calc_costs();
 
-	
-	// $(document).ready(function() {
-	// 	$(quani)
-	// 	calculate();
-	// });
+	errors = [];
+	submit_button = document.querySelectorAll('input[type="button"]');
+	list_of_costs = [];
 
-	// function calculate() {
+	// runs when the user selects the quantity of an item
+    function calc_costs() {
+        all_selects = document.getElementsByClassName("selectQuantity"); // list of <select>.....</select>
+  
+        for (i = 0; i < all_selects.length; i++) {
+            all_selects[i].addEventListener("change", function(e) {
+                current = e.target.name[4]
+                subcost = subcosts(parseInt(e.target.value), current);
+				list_of_costs[current] = subcost; 
+                recalc_subcosts(subcost, current);
+                recalc_total();
+            });
+        }
+    };
+  
+	// finds induvidual subcosts
+    function subcosts(num_product, product) {
+        cost = menuItems[product].cost;
+        return (num_product * cost).toFixed(2);
+    };
+  
+	// recalculates the subcost of an induvidual item when the user changes amount
+    function recalc_subcosts(subcost, product) {
+        all_costs[product].value = subcost;
+    };
+  
+	// recalcuates the total when the user selects more items
+    function recalc_total() {
+        subtotal = parseFloat(0);
+        tax_rate = 0.0625;
+  
+        for (i = 0; i < all_costs.length; i++) {
+            if (!isNaN(parseFloat(all_costs[i].value))) { // if NaN then can't be converted
+                subtotal += parseFloat(all_costs[i].value);
+            }
+        }
+        subtotal = parseFloat(subtotal.toFixed(2)); // converts to number
+        tax_total = parseFloat((tax_rate * subtotal).toFixed(2));
+        total_cost = (tax_total + subtotal).toFixed(2);
+  
+        $("#subtotal").val(subtotal);
+        $("#tax").val(tax_total);
+        $("#total").val(total_cost);
+    };
 
-	// }
+	// determins whether pickup or delivery is selected, and hides the address forms if pickup is slected
 	$(document).ready(function() {
+		$(".address").hide(); // setting it to hidden first since Pickup is automatically selected
 		$(fields).on('click', function() {
 			if (fields[0].checked) {
 				$(".address").hide();
 			} else {
 				$(".address").show();
-				$(".address").prop('required', true);
+				$(".address").attr('required', true);
 			}
 		});
 	});
 
 	// On clicking submit:
-	button = document.querySelectorAll('input[type="button"]');
 	$(document).ready(function (){
-		$(button).on('click', function() {
+		$(submit_button).on('click', function() {
 			printDate();
 			validate();
 		});
 	});
+
 	// Find current time (hours, minutes) and add amount depending on pickup/delivery	
 	function printDate () {
-		date = new Date();
+		date = new Date();	
 		if (fields[0].checked) {
 			newDate = new Date(date.getTime() + 20*60000);
 		} else {
 			newDate = new Date(date.getTime() + 40*60000);
 		}
-		console.log(newDate);	
+		return newDate;
 	};
 	
+	// calls all of the helper functions that validate induvidual form parts
 	function validate () {
-		const bool = verifyNum();
-		if (bool == true) {
-			window.open(
-            "/hw6/results", "_blank");
+		verifyNum();
+		verifyOrder();
+		verifyAddress ();
+		if (errors.length == 0) {
+			alert("Thank you for your order You will now be redirected.");
+			openWindow();
+		} else {
+            alert(errors);
+			errors = []; // resetting errors
 		}
 	};
 
+	// verify that the user has entered a phone number, and what they entered is either 7 or 10 digits long
 	function verifyNum () {
 		phoneNum = document.forms[0]["phone"].value;
 		if (phoneNum.length == 10 || phoneNum.length == 7) {
 			return true;
 		} else {
-			alert("Your phone number was incorrectly entered");
+			num_error = "Your phone number was incorrectly entered\n";
+			errors.push(num_error);
 			return false;
 		}
 	};
-	//allows for the functionality of showing and hiding street/city depending
-	//on the user's choice of 'delivery' or 'pickup'
 
-	// function showField() {
-	// 	console.log("at show field")
-	// 	if (fields[0].checked) {
-	// 		$(".address").hide();
-	// 	} else {
-	// 		$(".address").show();
-	// 		$(".address").prop('required', true);
-	// 	}
-	// }
+	// verify that the user has ordered at least one item
+	function verifyOrder () {
+		// cheapest order is 3.25
+		if (total_cost < 3.25) {
+			order_error = "You must order at least one item.\n";
+			errors.push(order_error);
+			return false;
+		} else {
+			return true;
+		}
+	};
+
+	// verify that the address has information in the field if user selected delivery
+	function verifyAddress () { 
+		if (fields[1].checked) {
+			address = [document.getElementsByName('street')[0], document.getElementsByName('city')[0]];
+            for (i = 0; i < address.length; i++) {
+                if (address[i].value.length <= 0) {
+				address = "You must enter an address for us to process your order.\n";
+				errors.push(address);
+				return false;
+			} else {
+				return true;
+			}
+		}
+		}
+	};
+
+	// code for opening a new window and accessing its divs to use variables from this file
+	function openWindow() {
+		//writing the divs for the new window
+        window_txt = '<div id="order"><strong>Your Order</strong></div><table id="info"></table><div id="other_info"><div id="subtotal"></div><br><div id="tax"></div><br><div id="total"></div><br><div id="food_time"></div></div>';
+        new_window = window.open(); // opening new window
+        new_window.document.write(window_txt); // adding the divs from window_text
+
+		// accessing new window's div
+        info = new_window.document.getElementById("info");
+        subtotal_div = new_window.document.getElementById("subtotal");
+        tax = new_window.document.getElementById("tax");
+        total = new_window.document.getElementById("total");
+        time = new_window.document.getElementById("food_time");
+
+		// creating the table to display # items bought and prices
+		none = "N/A";
+		table_txt = "<tr><td>Food Item</td><td>Cost Per Item</td><td>Number Purchased</td><td>Item Total</td>";
+        for (i = 0; i < menuItems.length; i++) {
+			table_txt += '<tr><td><strong>' + menuItems[i].name + ':</strong></td><td>$' + menuItems[i].cost.toFixed(2) + '</td><td>' + document.getElementsByTagName('select')[i].value + '</td><td>$'
+			if (list_of_costs[i] > 0) {
+            	table_txt += list_of_costs[i] + '</td></tr>';
+        }	else {
+				table_txt += none + '</td></tr>';
+		}
+	}
+        info.innerHTML = table_txt;
+
+		// displaying totals and taxes on new page
+		subtotal_div.innerHTML = 'Subtotal: $' + subtotal;
+        tax.innerHTML = 'Tax: $' + tax_total;
+        total.innerHTML = 'Total: $' + total_cost;
+
+		// based on user selection of pickup (fields[0]) or delivery, display certian time
+        if (fields[0].checked) {
+            food_time = "Pickup time: ";
+		}
+        else {
+			food_time = "Expected delivery time: ";
+        }
+        food_time += newDate;
+        time.innerHTML = food_time;
+
+    };
 
 </script>
 </body>
