@@ -204,7 +204,8 @@ function td(content, className="")
 			errors = []; // resetting errors
 		}
 	};
-
+	
+	//verify that a last name was entered
 	function verifyName() {
 		lastName = document.getElementsByName("lname")[0].value;
 		if (lastName == "") {
