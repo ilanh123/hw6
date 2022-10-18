@@ -193,17 +193,28 @@ function td(content, className="")
 	// calls all of the helper functions that validate induvidual form parts
 	function validate () {
 		verifyNum();
+		verifyName();
 		verifyOrder();
 		verifyAddress ();
 		if (errors.length == 0) {
-			alert("Thank you for your order You will now be redirected.");
-			openWindow();
+			alert("Thank you for your order! You will now be redirected.");
+			openWindow(); // calls funtion that opens new window if the order was successfully placed (no errors)
 		} else {
             alert(errors);
 			errors = []; // resetting errors
 		}
 	};
 
+	function verifyName() {
+		lastName = document.getElementsByName("lname")[0].value;
+		if (lastName == "") {
+			name_error = ("Please enter a valid name.\n");
+			errors.push(name_error);
+			return false;
+		} else {
+			return true;
+		}
+	}
 	// verify that the user has entered a phone number, and what they entered is either 7 or 10 digits long
 	function verifyNum () {
 		phoneNum = document.forms[0]["phone"].value;
@@ -247,7 +258,7 @@ function td(content, className="")
 	// code for opening a new window and accessing its divs to use variables from this file
 	function openWindow() {
 		//writing the divs for the new window
-        window_txt = '<div id="order"><strong>Your Order</strong></div><table id="info"></table><div id="other_info"><div id="subtotal"></div><br><div id="tax"></div><br><div id="total"></div><br><div id="food_time"></div></div>';
+        window_txt = '<div id="order"><strong>Your Order</strong></div><table id="info"></table><div id="subtotal"></div><br><div id="tax"></div><br><div id="total"></div><br><div id="food_time"></div></div>';
         new_window = window.open(); // opening new window
         new_window.document.write(window_txt); // adding the divs from window_text
 
